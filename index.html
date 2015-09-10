@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="img/favicon.png">
+    <title>Leaflet demo</title>
+    <!-- Bootstrap core CSS + customizations -->
+    <link rel="stylesheet" type="text/css" href="bower_components/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" type="text/css" href="index.css">
+  </head>
+  <body>
+    <div id="map"></div>
+  
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="bower_components/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="bower_components/underscore/underscore-min.js"></script>
+    <script type="text/javascript" src="bower_components/backbone/backbone-min.js"></script>
+    <script type="text/javascript" src="bower_components/leaflet/dist/leaflet-src.js"></script>
+    <script>
+      $(window).load(function() {
+      
+      });
+      
+      var EventQueue = _.clone(Backbone.Events);
+      
+      // var EditHistory = function(addListSelector, delListSelector){
+      //   _.extend(this, Backbone.Events);
+      //   
+      //   this.$addList = $(addListSelector);
+      //   this.$delList = $(delListSelector);
+      //   
+      //   this.listenTo(EventQueue, 'storage:add', EditHistory.prototype.add);
+      //   this.listenTo(EventQueue, 'user:remove', EditHistory.prototype.remove); // TODO listen to storage:remove event instead!
+      // };
+      // EditHistory.prototype.add = function(record){
+      //   this.$addList.append(`<a class="list-group-item" href="http://mydmv/documents?id=${record[0]}"> <h4 class="list-group-item-heading">${record[1]}</h4> <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p> <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p> <p class="list-group-item-text"><strong>Business Area</strong> ${record[4]}</p> <p class="list-group-item-text"><strong>Category</strong> ${record[5]}</p> <p class="list-group-item-text"><strong>Subject</strong> ${record[6]}</p> </a>`);
+      // };
+      // EditHistory.prototype.remove = function(record){
+      //   this.$delList.append(`
+      //     <a class="list-group-item" href="http://mydmv/documents?id=${record[0]}">
+      //       <h4 class="list-group-item-heading">${record[1]}</h4>
+      //       <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p>
+      //       <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p>
+      //       <p class="list-group-item-text"><strong>Business Area</strong> ${record[4]}</p>
+      //       <p class="list-group-item-text"><strong>Category</strong> ${record[5]}</p>
+      //       <p class="list-group-item-text"><strong>Subject</strong> ${record[6]}</p>
+      //     </a>`);
+      // };
+      
+      // ===
+      
+      var MapContainer = function(elemId){
+        this.map = L.map(elemId).setView([51.505, -0.09], 13);
+      };
+      
+      // ===
+      
+      $(document).ready(function(evt) {
+      // Setup the app components
+        var App = {
+          // history: new EditHistory('.list-group#list-group-added', '.list-group#list-group-deleted')
+          map: new MapContainer('map')
+        };
+        _.extend(App, Backbone.Events);
+        
+        // Top-level listeners
+        
+        // Error handling
+        App.listenTo(EventQueue, 'error:add', function(errorMsg){
+          
+        });
+      });
+    </script>
+  </body>
+</html>
