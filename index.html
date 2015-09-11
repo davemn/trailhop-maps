@@ -54,6 +54,12 @@
       
       var MapContainer = function(elemId){
         this.map = L.map(elemId).setView([51.505, -0.09], 13);
+        var layer = L.tileLayer('http://localhost/.stage/leaflet/tile-svc/{z}/{x}/{y}.png', {
+          attribution: 'OSM',
+          maxZoom: 18,
+          id: '',
+          accessToken: ''
+        })
       };
       
       // ===

@@ -1,0 +1,9 @@
+# Ala http://coreymaynard.com/blog/creating-a-restful-api-with-php/
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# tile-svc/{z}/{x}/{y} -> tile-svc/api.php?request={z}/{x}/{y}
+RewriteRule tile-svc/(.*)$ tile-svc/api.php?request=$1 [QSA,NC,L]
+</IfModule>
