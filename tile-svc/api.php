@@ -25,20 +25,23 @@
   // ===
   $doc = "$zoom-$x-$y.png";
   
-  header("Content-Disposition: attachment; filename=\"" . $doc . "\"");
+  // header("Content-Disposition: attachment; filename=\"" . $doc . "\"");
   
   # <<<
-  # readfile($doc);   # Does not handle large file sizes gracefully
+  if(!file_exists($doc))
+    readfile('missing.png');
+  else
+    readfile($doc);   # Does not handle large file sizes gracefully
   # ---
-  set_time_limit(0);   # potentially dangerous: allows script to run indefinitely
-  
-  # Chunk the file output to the client
-  $f_doc = @fopen($doc,"rb");
-  while(!feof($f_doc))
-  {
-    # Stream 8Mb to the client at a time
-    print(@fread($f_doc, 1024*8));
-    ob_flush();
-    flush();
-  }
+  # set_time_limit(0);   # potentially dangerous: allows script to run indefinitely
+  # 
+  # # Chunk the file output to the client
+  # $f_doc = @fopen($doc,"rb");
+  # while(!feof($f_doc))
+  # {
+  #   # Stream 8Mb to the client at a time
+  #   print(@fread($f_doc, 1024*8));
+  #   ob_flush();
+  #   flush();
+  # }
 ?>
