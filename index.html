@@ -36,11 +36,11 @@
       //   this.listenTo(EventQueue, 'user:remove', EditHistory.prototype.remove); // TODO listen to storage:remove event instead!
       // };
       // EditHistory.prototype.add = function(record){
-      //   this.$addList.append(`<a class="list-group-item" href="http://mydmv/documents?id=${record[0]}"> <h4 class="list-group-item-heading">${record[1]}</h4> <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p> <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p> <p class="list-group-item-text"><strong>Business Area</strong> ${record[4]}</p> <p class="list-group-item-text"><strong>Category</strong> ${record[5]}</p> <p class="list-group-item-text"><strong>Subject</strong> ${record[6]}</p> </a>`);
+      //   this.$addList.append(`<a class="list-group-item" href="http://<server>/documents?id=${record[0]}"> <h4 class="list-group-item-heading">${record[1]}</h4> <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p> <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p> <p class="list-group-item-text"><strong>Business Area</strong> ${record[4]}</p> <p class="list-group-item-text"><strong>Category</strong> ${record[5]}</p> <p class="list-group-item-text"><strong>Subject</strong> ${record[6]}</p> </a>`);
       // };
       // EditHistory.prototype.remove = function(record){
       //   this.$delList.append(`
-      //     <a class="list-group-item" href="http://mydmv/documents?id=${record[0]}">
+      //     <a class="list-group-item" href="http://<server>/documents?id=${record[0]}">
       //       <h4 class="list-group-item-heading">${record[1]}</h4>
       //       <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p>
       //       <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p>
@@ -60,7 +60,7 @@
           crs: L.CRS.Simple
         });
         
-        var layer = L.tileLayer('http://localhost/.stage/leaflet/tile-svc/{z}/{x}/{y}', {
+        var layer = L.tileLayer('http://localhost/.stage/github/trailhop-maps/tile-svc/{z}/{x}/{y}', {
           // maxZoom: 18,
           continuousWorld: true,
           tms: true
