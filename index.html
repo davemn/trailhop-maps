@@ -8,7 +8,7 @@
     <link rel="shortcut icon" href="img/favicon.png">
     <title>Leaflet demo</title>
     <!-- Bootstrap core CSS + customizations -->
-    <link rel="stylesheet" type="text/css" href="bower_components/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css">
     <link rel="stylesheet" type="text/css" href="index.css">
   </head>
   <body>
@@ -16,41 +16,32 @@
   
     <!-- Placed at the end of the document so the pages load faster -->
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.js"></script>
-    <script type="text/javascript" src="bower_components/underscore/underscore-min.js"></script>
-    <script type="text/javascript" src="bower_components/backbone/backbone-min.js"></script>
     <script type="text/javascript" src="bower_components/leaflet/dist/leaflet-src.js"></script>
     <script>
-      $(window).load(function() {
-      
-      });
-      
-      var EventQueue = _.clone(Backbone.Events);
-      
-      // var EditHistory = function(addListSelector, delListSelector){
-      //   _.extend(this, Backbone.Events);
-      //   
-      //   this.$addList = $(addListSelector);
-      //   this.$delList = $(delListSelector);
-      //   
-      //   this.listenTo(EventQueue, 'storage:add', EditHistory.prototype.add);
-      //   this.listenTo(EventQueue, 'user:remove', EditHistory.prototype.remove); // TODO listen to storage:remove event instead!
-      // };
-      // EditHistory.prototype.add = function(record){
-      //   this.$addList.append(`<a class="list-group-item" href="http://<server>/documents?id=${record[0]}"> <h4 class="list-group-item-heading">${record[1]}</h4> <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p> <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p> <p class="list-group-item-text"><strong>Business Area</strong> ${record[4]}</p> <p class="list-group-item-text"><strong>Category</strong> ${record[5]}</p> <p class="list-group-item-text"><strong>Subject</strong> ${record[6]}</p> </a>`);
-      // };
-      // EditHistory.prototype.remove = function(record){
-      //   this.$delList.append(`
-      //     <a class="list-group-item" href="http://<server>/documents?id=${record[0]}">
-      //       <h4 class="list-group-item-heading">${record[1]}</h4>
-      //       <p class="list-group-item-text"><strong>Division</strong> ${record[2]}</p>
-      //       <p class="list-group-item-text"><strong>File Type</strong> ${record[3]}</p>
-      //       <p class="list-group-item-text"><strong>Business Area</strong> ${record[4]}</p>
-      //       <p class="list-group-item-text"><strong>Category</strong> ${record[5]}</p>
-      //       <p class="list-group-item-text"><strong>Subject</strong> ${record[6]}</p>
-      //     </a>`);
-      // };
-      
-      // ===
+      (function(exports, $){
+        exports.deltaTime = 0;
+        exports.time = 0; // time since start of game, in seconds, accurate to 1 ms
+        exports.frameCount = 0;
+        
+        // 1 ms accuracy
+        function msToSec(ms){
+          return +(Math.round(ms) + 'e-3');
+        }
+        
+        function step(){
+          // perf.now() returns millis, e.g. 1200.001 = 1.2 secs + 1/1000 ms
+          var frameStart = msToSec(performance.now());
+          
+          exports.deltaTime = frameStart - exports.time;
+          exports.time = frameStart;
+          
+          exports.frameCount++;
+          requestAnimationFrame(step);
+        }
+        
+        requestAnimationFrame(step);
+        
+      })(window.Time = {}, jQuery);
       
       var MapContainer = function(elemId){
         // this.map = L.map(elemId).setView([51.505, -0.09], 13);
@@ -70,20 +61,43 @@
       
       // ===
       
-      $(document).ready(function(evt) {
-      // Setup the app components
-        var App = {
-          // history: new EditHistory('.list-group#list-group-added', '.list-group#list-group-deleted')
+      var $App;
+      var stepPeriod = 0.5; // seconds / step
+      var elapsedSinceStep = 0.0;
+      
+      function init(){
+        var $App = $({
           map: new MapContainer('map')
-        };
-        _.extend(App, Backbone.Events);
-        
-        // Top-level listeners
-        
-        // Error handling
-        App.listenTo(EventQueue, 'error:add', function(errorMsg){
-          
         });
+        
+        $App.on('plot', function(evt, coords){
+          console.log(coords);
+        });
+      }
+      
+      function step(){
+        if(elapsedSinceStep >= stepPeriod){
+          // only query location every STEPPERIOD seconds
+          navigator.geolocation.getCurrentPosition(function(position) {
+            // startPos = position;
+            // document.getElementById('startLat').innerHTML = startPos.coords.latitude;
+            // document.getElementById('startLon').innerHTML = startPos.coords.longitude;
+            
+            $App.trigger('plot', position.coords);
+          }, function(err){
+          
+          });
+          
+          elapsedSinceStep = 0.0;
+        }
+        
+        elapsedSinceStep += Time.deltaTime;
+        requestAnimationFrame(step);
+      }
+      
+      $(document).ready(function(evt) {
+        init();
+        requestAnimationFrame(step);
       });
     </script>
   </body>
