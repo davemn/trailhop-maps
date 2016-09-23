@@ -74,6 +74,69 @@
           console.log(coords);
         });
       }
+            
+      var StreamEventNames = {
+        ERROR: 0,
+        END: 1,
+        DATA: 2,
+      };
+      
+      function CoordinateStream(){
+        if(!navigator.geolocation)
+          throw new Error("Browser doesn't support geolocation");
+        
+        navigator.geolocation.watchPosition(this._watch.bind(this), this._err.bind(this));
+        this._listeners = {
+          StreamEventNames.ERROR: [],
+          StreamEventNames.END: [],
+          StreamEventNames.DATA: []
+        };
+      }
+      CoordinateStream.prototype.listenTo = function(evtName, cb){
+        this._listeners[evtName].push(cb);
+        // switch(evtName){
+        //   case StreamEventNames.ERROR:
+        //     break;
+        //   case StreamEventNames.END:
+        //     break;
+        //   case StreamEventNames.DATA:
+        //     
+        //     break;
+        //   default:
+        // }
+      };
+      CoordinateStream.prototype._notifyAll = function(evtName, argsArray){
+        var count = this._listeners[evtName].length;
+        for(var i=0; i < count; i++){
+          // this._listeners[evtName][i](pos.coords);
+          if(!argsArray || argsArray.length === 0)
+            this._listeners[evtName][i].apply(this);
+          else
+            this._listeners[evtName][i].apply(this, argsArray);
+        }
+      };
+      CoordinateStream.prototype._watch = function(pos){
+        this._notifyAll(StreamEventNames.DATA, [pos.coords]);
+      };
+      CoordinateStream.prototype._err = function(err){
+        if(err.code === 1) { // permission denied
+          this._notifyAll(StreamEventNames.END);
+        }
+        else {
+          switch(err.code){
+            default:
+            case 0:
+              this._notifyAll(StreamEventNames.ERROR, ['Unknown Error']);
+              break;
+            case 2:
+              this._notifyAll(StreamEventNames.ERROR, ['Position Unavailable']);
+              break;
+            case 3:
+              this._notifyAll(StreamEventNames.ERROR, ['Timeout']);
+              break;
+          }
+        }
+      };
       
       function step(){
         if(elapsedSinceStep >= stepPeriod){
@@ -85,7 +148,11 @@
             
             $App.trigger('plot', position.coords);
           }, function(err){
-          
+            // error.code can be:
+            //   0: unknown error
+            //   1: permission denied
+            //   2: position unavailable (error response from locaton provider)
+            //   3: timed out
           });
           
           elapsedSinceStep = 0.0;
