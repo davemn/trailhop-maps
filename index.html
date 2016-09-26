@@ -7,16 +7,23 @@
     <meta name="author" content="">
     <link rel="shortcut icon" href="img/favicon.png">
     <title>Leaflet demo</title>
-    <!-- Bootstrap core CSS + customizations -->
+    
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/leaflet.css">
     <link rel="stylesheet" type="text/css" href="index.css">
+    <style>
+      #map {
+        border: 1px solid #888;
+      }
+    </style>
   </head>
   <body>
     <div id="map"></div>
   
-    <!-- Placed at the end of the document so the pages load faster -->
     <script type="text/javascript" src="bower_components/jquery/dist/jquery.js"></script>
     <script type="text/javascript" src="bower_components/leaflet/dist/leaflet-src.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.15/proj4.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/0.7.2/proj4leaflet.min.js"></script>
+    
     <script>
       (function(exports, $){
         exports.deltaTime = 0;
@@ -46,21 +53,68 @@
       // ---
       
       var MapContainer = function(elemId){
+        // based on http://spatialreference.org/ref/sr-org/6842/ and http://spatialreference.org/ref/sr-org/6974/
+        var sinusoidal = new L.Proj.CRS('SR-ORG:6974', '+proj=sinu +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs', {
+          resolutions: [ // meters/pixel, WGS 84 equatorial radius := 6378137
+            24915, 12457, 6229
+          ],
+          origin: [-2275822.9, 9972315.0495],
+          bounds: L.bounds(L.point(-2275822.9000, -9152341.5816), L.point(2097942.4893, 9972315.0495))
+        });
+      
         this.map = L.map(elemId, {
           center: [0,0],
           zoom: 0,
-          // crs: L.CRS.Simple
-          crs: L.CRS.EPSG4326
+          // crs: L.CRS.EPSG4326
+          crs: sinusoidal
         });
         // this.map = L.map(elemId).setView([51.505, -0.09], 13);
         
         var layer = L.tileLayer('http://localhost/.stage/github/trailhop-maps/tile-svc/{z}/{x}/{y}', {
           // maxZoom: 18,
+          minZoom: 0,
+          maxZoom: sinusoidal.options.resolutions.length,
           continuousWorld: true,
           tms: true
         });
         layer.addTo(this.map);
         this.tileLayer = layer;
+        
+        this.addLongitudeLines(15);
+        this.addLatitudeLines(15);
+      };
+      MapContainer.prototype.addSmallCircle = function(isLat, offsetDeg, color){
+        var pts = [];
+        if(!isLat){
+          for(var latI = -89; latI <= 89; latI += 5){
+            pts.push([ latI, offsetDeg ]);
+          }
+        } 
+        else {
+          for(var lonI = -179; lonI <= 179; lonI += 5){
+            pts.push([ offsetDeg, lonI ]);
+          }
+        }
+        
+        var circle = L.polyline(pts, { color: (color ? color : 'black') });
+        circle.addTo(this.map);
+        // map.fitBounds(polyline.getBounds());
+      };
+      MapContainer.prototype.addLongitudeLines = function(spacingDeg){
+        for(var lonI = -180; lonI <= 180; lonI += spacingDeg){
+          if(lonI === 0)
+            this.addSmallCircle(false, lonI, 'red');
+          else
+            this.addSmallCircle(false, lonI);
+        }
+      };
+      MapContainer.prototype.addLatitudeLines = function(spacingDeg){
+        for(var latI = -90; latI <= 90; latI += spacingDeg){
+          if(latI === 0)
+            this.addSmallCircle(true, latI, 'red');
+          else
+            this.addSmallCircle(true, latI);
+        }
       };
       
       // ===
