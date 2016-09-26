@@ -43,13 +43,16 @@
         
       })(window.Time = {}, jQuery);
       
+      // ---
+      
       var MapContainer = function(elemId){
-        // this.map = L.map(elemId).setView([51.505, -0.09], 13);
         this.map = L.map(elemId, {
           center: [0,0],
           zoom: 0,
-          crs: L.CRS.Simple
+          // crs: L.CRS.Simple
+          crs: L.CRS.EPSG4326
         });
+        // this.map = L.map(elemId).setView([51.505, -0.09], 13);
         
         var layer = L.tileLayer('http://localhost/.stage/github/trailhop-maps/tile-svc/{z}/{x}/{y}', {
           // maxZoom: 18,
@@ -57,23 +60,10 @@
           tms: true
         });
         layer.addTo(this.map);
+        this.tileLayer = layer;
       };
       
       // ===
-      
-      var $App;
-      var stepPeriod = 0.5; // seconds / step
-      var elapsedSinceStep = 0.0;
-      
-      function init(){
-        var $App = $({
-          map: new MapContainer('map')
-        });
-        
-        $App.on('plot', function(evt, coords){
-          console.log(coords);
-        });
-      }
             
       var StreamEventNames = {
         ERROR: 0,
@@ -86,33 +76,25 @@
           throw new Error("Browser doesn't support geolocation");
         
         navigator.geolocation.watchPosition(this._watch.bind(this), this._err.bind(this));
-        this._listeners = {
-          StreamEventNames.ERROR: [],
-          StreamEventNames.END: [],
-          StreamEventNames.DATA: []
-        };
+        this._listeners = {};
+        this._listeners[StreamEventNames.ERROR] = [];
+        this._listeners[StreamEventNames.END] = [];
+        this._listeners[StreamEventNames.DATA] = [];
       }
-      CoordinateStream.prototype.listenTo = function(evtName, cb){
-        this._listeners[evtName].push(cb);
-        // switch(evtName){
-        //   case StreamEventNames.ERROR:
-        //     break;
-        //   case StreamEventNames.END:
-        //     break;
-        //   case StreamEventNames.DATA:
-        //     
-        //     break;
-        //   default:
-        // }
+      CoordinateStream.prototype.listenTo = function(evtName, callback, context){
+        this._listeners[evtName].push({ callback: callback, context: context });
       };
       CoordinateStream.prototype._notifyAll = function(evtName, argsArray){
         var count = this._listeners[evtName].length;
+        var cb, ctx;
         for(var i=0; i < count; i++){
-          // this._listeners[evtName][i](pos.coords);
+          cb = this._listeners[evtName][i].callback;
+          ctx = this._listeners[evtName][i].context;
+          
           if(!argsArray || argsArray.length === 0)
-            this._listeners[evtName][i].apply(this);
+            cb.apply(ctx);
           else
-            this._listeners[evtName][i].apply(this, argsArray);
+            cb.apply(ctx, argsArray);
         }
       };
       CoordinateStream.prototype._watch = function(pos){
@@ -138,22 +120,34 @@
         }
       };
       
+      // ---
+      
+      function App(map, coordStream){
+        this.map = map;
+        this.stream = coordStream;
+        
+        this.stream.listenTo(StreamEventNames.DATA, this.plotPosition, this);
+        // todo listen for END, ERROR as well
+      }
+      App.prototype.plotPosition = function(pos){
+        // this.map.map
+        // this.map.tileLayer
+        
+        L.marker([pos.latitude, pos.longitude]).addTo(this.map.map);
+      };
+      
+      // - Main event loop -
+      
+      var stepPeriod = 0.5; // seconds / step
+      var elapsedSinceStep = 0.0;
+      
+      function init(){
+        new App(new MapContainer('map'), new CoordinateStream());
+      }
+      
       function step(){
         if(elapsedSinceStep >= stepPeriod){
-          // only query location every STEPPERIOD seconds
-          navigator.geolocation.getCurrentPosition(function(position) {
-            // startPos = position;
-            // document.getElementById('startLat').innerHTML = startPos.coords.latitude;
-            // document.getElementById('startLon').innerHTML = startPos.coords.longitude;
-            
-            $App.trigger('plot', position.coords);
-          }, function(err){
-            // error.code can be:
-            //   0: unknown error
-            //   1: permission denied
-            //   2: position unavailable (error response from locaton provider)
-            //   3: timed out
-          });
+          // do something every STEPPERIOD second(s)
           
           elapsedSinceStep = 0.0;
         }
